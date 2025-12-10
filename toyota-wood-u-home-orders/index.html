@@ -111,7 +111,7 @@
                             <thead>
                                 <tr>
                                     <th style="width: 20%;">工事件名</th>
-                                    <th style="width: 25%;">商品名</th>
+                                    <th style="width: 25%;">工事名</th>
                                     <th style="width: 10%;">数量</th>
                                     <th style="width: 10%;">単位</th>
                                     <th style="width: 15%;">単価（円）</th>
@@ -122,6 +122,14 @@
                             <tbody id="itemsTableBody">
                                 <!-- JavaScriptで初期行を追加 -->
                             </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="5" style="text-align: right; font-weight: 600; padding: 12px;">合計</td>
+                                    <td id="itemsTotal"
+                                        style="font-weight: 700; color: var(--primary-color); padding: 12px;">¥0</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     <div class="action-bar">
