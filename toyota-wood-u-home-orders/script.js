@@ -173,7 +173,7 @@ class OrderFormManager {
                 unit: get('input[name="itemUnit[]"]'),
                 quantity,
                 price,
-                subtotal: quantity * price
+                subtotal: quantity * price,remarks: get('input[name="itemRemarks[]"]')
             };
         });
     }
@@ -461,7 +461,7 @@ class OrderFormManager {
             <td><input type="number" name="itemQuantity[]" min="1" placeholder="0"></td>
             <td><input type="text" name="itemUnit[]" placeholder="単位"></td>
             <td><input type="number" name="itemPrice[]" min="0" step="0.01" placeholder="0"></td>
-            <td><input type="number" name="itemSubtotal[]" readonly placeholder="0"></td>
+            <td><input type="number" name="itemSubtotal[]" readonly placeholder="0"></td><td><input type="text" name="itemRemarks[]" placeholder="備考"></td>
             <td><button type="button" class="remove-item-btn" title="削除">×</button></td>
         `;
         tbody.appendChild(newRow);
@@ -783,7 +783,7 @@ class OrderFormManager {
                     row.querySelector('input[name="itemName[]"]').value = item.name || '';
                     row.querySelector('input[name="itemQuantity[]"]').value = item.quantity || '';
                     row.querySelector('input[name="itemUnit[]"]').value = item.unit || '';
-                    row.querySelector('input[name="itemPrice[]"]').value = item.price || '';
+                    row.querySelector('input[name="itemPrice[]"]').value = item.price || '';row.querySelector('input[name="itemRemarks[]"]').value = item.remarks || '';
                 });
                 this.calculateTotals();
             }
