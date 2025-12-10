@@ -503,6 +503,12 @@ class OrderFormManager {
         document.getElementById('subtotal').textContent = `¥${subtotal.toLocaleString()}`;
         document.getElementById('tax').textContent = `¥${tax.toLocaleString()}`;
         document.getElementById('total').textContent = `¥${total.toLocaleString()}`;
+
+        // Update items table total
+        const itemsTotalElement = document.getElementById('itemsTotal');
+        if (itemsTotalElement) {
+            itemsTotalElement.textContent = `¥${subtotal.toLocaleString()}`;
+        }
     }
 
     showPreview() {
