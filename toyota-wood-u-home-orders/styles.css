@@ -387,6 +387,8 @@ textarea:focus {
     display: flex;
     align-items: center;
     justify-content: center;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
 }
 
 .modal-backdrop {
@@ -395,259 +397,441 @@ textarea:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: -1;
 }
 
 .modal-content {
     position: relative;
-    background-color: var(--surface-color);
-    width: 95%;
-    max-width: 1000px;
-    height: 90vh;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
+    background-color: transparent;
+    width: 100%;
+    max-width: 1400px;
+    height: 95vh;
     display: flex;
     flex-direction: column;
     z-index: 1001;
-    animation: modalSlideIn 0.3s ease-out;
+    animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(40px) scale(0.98);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .modal-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: transparent;
+    color: white;
 }
 
 .modal-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .close-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
     font-size: 1.5rem;
-    color: var(--text-secondary);
+    color: white;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
 }
 
 .modal-body {
     flex: 1;
     overflow-y: auto;
     padding: 2rem;
-    background-color: #525659;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    /* Custom Scrollbar for dark theme */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
 }
 
 .modal-footer {
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 2rem;
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    background-color: var(--surface-color);
+    justify-content: center;
+    gap: 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    pointer-events: none;
+    /* Let clicks pass through transparent parts if needed */
 }
 
-/* Print-Quality Preview Styles */
+.modal-footer button {
+    pointer-events: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Print-Quality Preview Styles (A4) */
 .preview-paper {
     background: white;
     width: 210mm;
     min-height: 297mm;
-    padding: 15mm;
-    box-shadow: var(--shadow-lg);
-    margin: auto;
+    padding: 0;
+    /* padding controlled internally */
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    margin: 0 auto;
     font-family: 'Noto Sans JP', sans-serif;
+    color: #333;
+    overflow: hidden;
+    /* A4 Aspect Ratio enforcement */
+    aspect-ratio: 210/297;
 }
 
-.preview-header {
+/* Print Layout Container - Using absolute positioning for pixel-perfect print */
+.print-layout {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 15mm;
+    /* Global Margin */
+}
+
+/* --- Design Components --- */
+
+/* Header Area */
+.pl-header {
+    height: 35mm;
+    background-color: var(--primary-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+}
+
+.pl-logo-img {
+    position: absolute;
+    top: 2mm;
+    left: 8mm;
+    height: 32mm;
+    /* Large and prominent */
+    width: auto;
+    z-index: 50;
+    /* Ensure it stays on top of header */
+    background-color: transparent;
+    mix-blend-mode: multiply;
+    /* Transparency effect for white background logos */
+}
+
+.pl-title {
+    position: absolute;
+    top: 8mm;
+    right: 15mm;
+    font-size: 28pt;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.1em;
+    z-index: 10;
+}
+
+.pl-order-number {
+    position: absolute;
+    top: 40mm;
+    right: 15mm;
+    font-size: 10pt;
+    color: var(--primary-color);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Info Grid */
+.pl-info-grid {
+    margin-top: 35mm;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #333;
+    gap: 10mm;
 }
 
-.preview-logo-area {
+.pl-info-box {
+    flex: 1;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 2mm;
+    padding: 5mm;
+    position: relative;
+}
+
+.pl-info-label {
+    position: absolute;
+    top: -3mm;
+    left: 4mm;
+    background: var(--primary-color);
+    color: white;
+    padding: 1mm 3mm;
+    font-size: 8pt;
+    font-weight: bold;
+    border-radius: 1mm;
+}
+
+.pl-recipient {
+    font-size: 13pt;
+    font-weight: bold;
+    border-bottom: 1px solid #CBD5E1;
+    padding-bottom: 2mm;
+    margin-bottom: 3mm;
+    display: block;
+}
+
+.pl-info-row {
+    font-size: 9pt;
+    margin-bottom: 1.5mm;
+    display: flex;
+}
+
+.pl-info-row .label {
+    width: 18mm;
+    color: #64748B;
     flex-shrink: 0;
 }
 
-.preview-title-area {
-    text-align: right;
-}
-
-.preview-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 5px;
-}
-
-.preview-order-number {
-    font-size: 14px;
-    color: #666;
-}
-
-.preview-meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.preview-info-block h3 {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.preview-info-block p {
-    font-size: 13px;
-    line-height: 1.6;
-    color: #333;
-    margin: 2px 0;
-}
-
-.preview-details-bar {
+/* Details Bar */
+.pl-details-bar {
+    margin-top: 5mm;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3mm 5mm;
     display: flex;
-    gap: 20px;
-    padding: 12px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    justify-content: space-around;
+    font-size: 10pt;
+    border-radius: 1mm;
 }
 
-.preview-detail-item {
-    display: flex;
-    gap: 8px;
+/* Table */
+.pl-table-container {
+    margin-top: 8mm;
 }
 
-.preview-detail-item .label {
-    font-size: 12px;
-    color: #666;
-    font-weight: 600;
-}
-
-.preview-detail-item .value {
-    font-size: 12px;
-    color: #333;
-}
-
-.preview-table {
+.pl-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
 }
 
-.preview-table th {
-    background-color: #f0f0f0;
-    padding: 10px 8px;
+.pl-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 3mm;
+    font-size: 9pt;
+    font-weight: bold;
     text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    border: 1px solid #ddd;
-    color: #333;
 }
 
-.preview-table td {
-    padding: 8px;
-    font-size: 12px;
-    border: 1px solid #ddd;
-    color: #333;
+.pl-table td {
+    padding: 3mm;
+    font-size: 10pt;
+    border-bottom: 1px solid #E2E8F0;
+    color: #334155;
 }
 
-.preview-table tr:nth-child(even) {
-    background-color: #fafafa;
+.pl-table tr:nth-child(even) {
+    background-color: #F8FAFC;
 }
 
-.preview-table .align-right {
+.pl-col-right {
     text-align: right;
 }
 
-.preview-summary {
-    margin-left: auto;
-    width: 300px;
-    margin-bottom: 20px;
-}
-
-.preview-summary-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 12px;
-    font-size: 13px;
-    border-bottom: 1px solid #eee;
-}
-
-.preview-summary-row.total {
-    background-color: #f5f5f5;
-    font-weight: 700;
-    font-size: 15px;
-    border-bottom: 2px solid #333;
-}
-
-.preview-remarks {
-    margin-bottom: 30px;
-}
-
-.preview-remarks h4 {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.preview-remarks p {
-    font-size: 12px;
-    line-height: 1.6;
-    color: #333;
-    white-space: pre-wrap;
-}
-
-.preview-footer {
-    margin-top: auto;
-    padding-top: 20px;
-    border-top: 1px solid #ddd;
-}
-
-.preview-footer-message {
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 20px;
+.pl-col-center {
     text-align: center;
 }
 
-.preview-stamp-area {
+/* Summary */
+.pl-summary {
     display: flex;
     justify-content: flex-end;
-    gap: 30px;
+    margin-top: 5mm;
 }
 
-.preview-stamp {
-    width: 60px;
-    height: 60px;
-    border: 2px solid #d32f2f;
-    border-radius: 50%;
+.pl-summary-box {
+    width: 80mm;
+    background-color: #F8FAFC;
+    border-radius: 2mm;
+    overflow: hidden;
+}
+
+.pl-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3mm 5mm;
+    font-size: 10pt;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.pl-summary-row.total {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    font-size: 12pt;
+    border-bottom: none;
+}
+
+/* Remarks & Stamps */
+.pl-footer-area {
+    margin-top: 10mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.pl-remarks {
+    flex: 1;
+    margin-right: 10mm;
+}
+
+.pl-remarks h4 {
+    font-size: 9pt;
+    color: var(--primary-color);
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 2mm;
+}
+
+.pl-remarks p {
+    font-size: 9pt;
+    line-height: 1.4;
+    color: #475569;
+}
+
+.pl-stamps {
+    display: flex;
+    gap: 5mm;
+}
+
+.pl-stamp-box {
+    width: 18mm;
+    height: 18mm;
+    border: 1px solid #E2E8F0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
-    color: #d32f2f;
+    position: relative;
+}
+
+.pl-stamp-circle {
+    width: 15mm;
+    height: 15mm;
+    border: 1.5px solid #DC2626;
+    /* Red */
+    border-radius: 50%;
+    color: #DC2626;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Footer Message */
+.pl-bottom-msg {
+    position: relative;
+    margin-top: 10mm;
+    text-align: right;
+    font-size: 8pt;
+    color: #94A3B8;
+    bottom: auto;
+    right: auto;
+}
+
+/* --- Print Media Query (THE MAGIC) --- */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    body {
+        background: white;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    /* Hide everything except the preview paper */
+    .app-container,
+    .modal-backdrop,
+    .modal-header,
+    .modal-footer,
+    .close-btn {
+        display: none !important;
+    }
+
+    .preview-modal {
+        position: static;
+        width: 100%;
+        height: auto;
+        background: white;
+        display: block;
+        overflow: visible;
+        z-index: auto;
+    }
+
+    .modal-content {
+        width: 100%;
+        height: auto;
+        max-width: none;
+        background: white;
+        box-shadow: none;
+        animation: none;
+        transform: none;
+        display: block;
+        overflow: visible;
+        margin: 0;
+        padding: 0;
+    }
+
+    .modal-body {
+        padding: 0;
+        overflow: visible;
+        display: block;
+        height: auto;
+    }
+
+    .preview-paper {
+        margin: 0;
+        box-shadow: none;
+        width: 100%;
+        /* Fill the page */
+        min-height: 100vh;
+        page-break-after: always;
+    }
 }
