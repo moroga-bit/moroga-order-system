@@ -1,0 +1,23 @@
+{
+  "name": "order-form-system",
+  "version": "1.0.0",
+  "description": "発注書作成システム - WEBでコントロールでき、PDFで保存できる発注書作成ツール",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080 -o",
+    "dev": "npx live-server --port=8080 --open=/index.html"
+  },
+  "keywords": [
+    "order-form",
+    "pdf-generation",
+    "invoice",
+    "japanese"
+  ],
+  "author": "カーサー株式会社",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  }
+}
+
