@@ -1,0 +1,17 @@
+# 除外するディレクトリ
+toyota-order-new/
+
+# 一時ファイル
+*.tmp
+*.temp
+
+# ログファイル
+*.log
+
+# エディタ設定ファイル
+.vscode/
+.idea/
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
