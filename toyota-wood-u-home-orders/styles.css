@@ -1,6 +1,7 @@
 /* Variables & Theme */
 :root {
-    --primary-color: #2563EB;
+    --primary-color: #1a365d;
+    /* Calm Navy */
     --primary-hover: #1D4ED8;
     --secondary-color: #64748B;
     --success-color: #10B981;
@@ -405,9 +406,9 @@ textarea:focus {
 .modal-content {
     position: relative;
     background-color: transparent;
-    width: 100%;
+    width: 95%;
     max-width: 1400px;
-    height: 95vh;
+    height: 90vh;
     display: flex;
     flex-direction: column;
     z-index: 1001;
@@ -510,21 +511,21 @@ textarea:focus {
     /* padding controlled internally */
     position: relative;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-    margin: 0 auto;
+    margin: 0 auto 2rem auto;
     font-family: 'Noto Sans JP', sans-serif;
     color: #333;
-    overflow: hidden;
-    /* A4 Aspect Ratio enforcement */
-    aspect-ratio: 210/297;
+    /* overflow: hidden; Removed to allow content to expand */
+    /* aspect-ratio: 210/297; Removed to allow variable height */
 }
 
 /* Print Layout Container - Using absolute positioning for pixel-perfect print */
 .print-layout {
     width: 100%;
-    height: 100%;
+    height: auto;
     position: relative;
-    padding: 15mm;
-    /* Global Margin */
+    padding: 10mm;
+    padding-top: 45mm;
+    /* 10mm padding + 35mm header space reserved */
 }
 
 /* --- Design Components --- */
@@ -550,8 +551,9 @@ textarea:focus {
     z-index: 50;
     /* Ensure it stays on top of header */
     background-color: transparent;
-    mix-blend-mode: multiply;
-    /* Transparency effect for white background logos */
+    mix-blend-mode: screen;
+    filter: grayscale(1) contrast(5) invert(1);
+    /* White logo optimization: high contrast then invert */
 }
 
 .pl-title {
@@ -576,7 +578,7 @@ textarea:focus {
 
 /* Info Grid */
 .pl-info-grid {
-    margin-top: 35mm;
+    margin-top: 0;
     display: flex;
     justify-content: space-between;
     gap: 10mm;
@@ -799,10 +801,34 @@ textarea:focus {
         position: static;
         width: 100%;
         height: auto;
-        background: white;
+        background: transparent;
         display: block;
-        overflow: visible;
-        z-index: auto;
+    }
+
+    .preview-paper {
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 210mm !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: hidden !important;
+        /* Force clip phantom content */
+        page-break-inside: avoid;
+        /* page-break-after: always; Removed to prevent blank 2nd page */
+    }
+
+    .pl-header {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Force logo to be visible */
+    .pl-logo-img {
+        z-index: 100 !important;
+        visibility: visible !important;
     }
 
     .modal-content {

@@ -274,8 +274,8 @@ class OrderFormManager {
             });
         }
 
-        // 空行を埋めて見た目を整える（最低10行確保など）
-        const minRows = 10;
+        // 空行を埋めて見た目を整える（最低3行確保など - 1ページに収めるため厳しく調整）
+        const minRows = 3;
         const currentRows = data.items ? data.items.filter(i => i.name.trim() || i.projectName.trim()).length : 0;
         const rowsToAdd = Math.max(0, minRows - currentRows);
 
@@ -341,10 +341,6 @@ class OrderFormManager {
                         <div class="pl-info-box">
                             <div class="pl-info-label">発注先 (Supplier)</div>
                             <span class="pl-recipient">${data.supplierName} 御中</span>
-                            <div class="pl-info-row">
-                                <span class="label">住所:</span>
-                                <span>${data.supplierAddress}</span>
-                            </div>
                             <div class="pl-info-row">
                                 <span class="label">担当者:</span>
                                 <span>${data.contactPerson ? data.contactPerson + ' 様' : ''}</span>
