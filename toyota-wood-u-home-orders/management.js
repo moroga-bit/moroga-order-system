@@ -15,7 +15,24 @@ class OrderManagementSystem {
     loadOrders() {
         try {
             const saved = localStorage.getItem('purchaseOrders');
-            return saved ? JSON.parse(saved) : [];
+            let orders = saved ? JSON.parse(saved) : [];
+
+            // 重複IDのクリーニング（古いデータに重複がある場合の対策）
+            const uniqueOrders = [];
+            const ids = new Set();
+            orders.forEach(order => {
+                if (!ids.has(String(order.id))) {
+                    ids.add(String(order.id));
+                    uniqueOrders.push(order);
+                }
+            });
+
+            if (uniqueOrders.length !== orders.length) {
+                console.log('重複データを削除しました');
+                localStorage.setItem('purchaseOrders', JSON.stringify(uniqueOrders));
+            }
+
+            return uniqueOrders;
         } catch (error) {
             console.error('発注書データの読み込みエラー:', error);
             return [];
@@ -88,6 +105,33 @@ class OrderManagementSystem {
                 this.navigateMonth(1);
             });
         }
+
+        // テーブル内のアクションボタン（イベント委譲）
+        const tableBody = document.getElementById('ordersTableBody');
+        if (tableBody) {
+            console.log('テーブルイベントリスナー初期化完了');
+            tableBody.addEventListener('click', (e) => {
+                console.log('テーブルクリック:', e.target);
+
+                // 編集
+                const editBtn = e.target.closest('.edit-btn');
+                if (editBtn) {
+                    const orderId = editBtn.getAttribute('data-order-id');
+                    console.log('編集ボタンクリック ID:', orderId);
+                    if (orderId) this.editOrder(orderId);
+                    return;
+                }
+
+                // 削除
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn) {
+                    const orderId = deleteBtn.getAttribute('data-order-id');
+                    console.log('削除ボタンクリック ID:', orderId);
+                    if (orderId) this.deleteOrder(orderId);
+                    return;
+                }
+            });
+        }
     }
 
     // 発注書をフィルタリング
@@ -97,7 +141,7 @@ class OrderManagementSystem {
 
         this.filteredOrders = this.orders.filter(order => {
             // 検索条件
-            const matchesSearch = !searchTerm || 
+            const matchesSearch = !searchTerm ||
                 order.supplierName.toLowerCase().includes(searchTerm) ||
                 order.orderNumber.toLowerCase().includes(searchTerm) ||
                 order.companyName.toLowerCase().includes(searchTerm);
@@ -107,30 +151,30 @@ class OrderManagementSystem {
             if (filterValue !== 'all') {
                 const orderDate = new Date(order.orderDate);
                 const now = new Date();
-                
+
                 switch (filterValue) {
                     case 'thisMonth':
-                        matchesFilter = orderDate.getMonth() === now.getMonth() && 
-                                       orderDate.getFullYear() === now.getFullYear();
+                        matchesFilter = orderDate.getMonth() === now.getMonth() &&
+                            orderDate.getFullYear() === now.getFullYear();
                         break;
                     case 'lastMonth':
                         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-                        matchesFilter = orderDate.getMonth() === lastMonth.getMonth() && 
-                                       orderDate.getFullYear() === lastMonth.getFullYear();
+                        matchesFilter = orderDate.getMonth() === lastMonth.getMonth() &&
+                            orderDate.getFullYear() === lastMonth.getFullYear();
                         break;
                     case 'thisYear':
                         matchesFilter = orderDate.getFullYear() === now.getFullYear();
                         break;
                     case 'selectedMonth':
-                        matchesFilter = orderDate.getMonth() === this.selectedMonth.getMonth() && 
-                                       orderDate.getFullYear() === this.selectedMonth.getFullYear();
+                        matchesFilter = orderDate.getMonth() === this.selectedMonth.getMonth() &&
+                            orderDate.getFullYear() === this.selectedMonth.getFullYear();
                         break;
                 }
             } else {
                 // デフォルトで選択月のデータを表示
                 const orderDate = new Date(order.orderDate);
-                matchesFilter = orderDate.getMonth() === this.selectedMonth.getMonth() && 
-                               orderDate.getFullYear() === this.selectedMonth.getFullYear();
+                matchesFilter = orderDate.getMonth() === this.selectedMonth.getMonth() &&
+                    orderDate.getFullYear() === this.selectedMonth.getFullYear();
             }
 
             return matchesSearch && matchesFilter;
@@ -141,119 +185,61 @@ class OrderManagementSystem {
 
     // 発注書一覧をレンダリング
     renderOrders() {
-        const ordersGrid = document.getElementById('ordersGrid');
+        const ordersTableBody = document.getElementById('ordersTableBody');
         const emptyState = document.getElementById('emptyState');
+        const tableContainer = document.querySelector('.table-container');
 
-        if (!ordersGrid) return;
+        if (!ordersTableBody) return;
 
         if (this.filteredOrders.length === 0) {
-            ordersGrid.style.display = 'none';
+            if (tableContainer) tableContainer.style.display = 'none';
             if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
-        ordersGrid.style.display = 'grid';
+        if (tableContainer) tableContainer.style.display = 'block';
         if (emptyState) emptyState.style.display = 'none';
 
-        ordersGrid.innerHTML = this.filteredOrders.map(order => this.createOrderCard(order)).join('');
-        
-        // 各カードのイベントリスナーを設定
-        this.attachCardEventListeners();
+        ordersTableBody.innerHTML = this.filteredOrders.map(order => this.createOrderRow(order)).join('');
     }
 
-    // 発注書カードを作成
-    createOrderCard(order) {
+    // 発注書テーブル行を作成
+    createOrderRow(order) {
         const totalAmount = this.calculateTotal(order.items);
         const orderDate = new Date(order.orderDate).toLocaleDateString('ja-JP');
-        
+
         return `
-            <div class="order-card" data-order-id="${order.id}">
-                <div class="order-card-header">
-                    <div class="order-number">${order.orderNumber}</div>
-                    <div class="order-date">${orderDate}</div>
-                </div>
-                
-                <div class="order-info">
-                    <div class="info-row">
-                        <span class="info-label">発注先:</span>
-                        <span class="info-value">${order.supplierName}</span>
+            <tr data-order-id="${order.id}">
+                <td><span class="order-number">${order.orderNumber}</span></td>
+                <td>${orderDate}</td>
+                <td>${order.supplierName}</td>
+                <td>${order.staffMember || '-'}</td>
+                <td><span class="amount">¥${totalAmount.toLocaleString()}</span></td>
+                <td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-success edit-btn" onclick="window.managementSystem.editOrder('${order.id}')">編集</button>
+                        <button class="btn btn-sm btn-danger delete-btn" onclick="window.managementSystem.deleteOrder('${order.id}')">削除</button>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">担当:</span>
-                        <span class="info-value">${order.staffMember || '未設定'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">工事完了月:</span>
-                        <span class="info-value">${order.completionMonth || '未設定'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">支払条件:</span>
-                        <span class="info-value">${order.paymentTerms}</span>
-                    </div>
-                </div>
-
-                <div class="order-total">
-                    <div class="total-amount">¥${totalAmount.toLocaleString()}</div>
-                </div>
-
-                <div class="order-actions">
-                    <button class="btn btn-primary view-btn" data-order-id="${order.id}">
-                        👁️ 詳細表示
-                    </button>
-                    <button class="btn btn-success edit-btn" data-order-id="${order.id}">
-                        ✏️ 編集
-                    </button>
-                    <button class="btn btn-warning pdf-btn" data-order-id="${order.id}">
-                        📄 PDF
-                    </button>
-                    <button class="btn btn-danger delete-btn" data-order-id="${order.id}">
-                        🗑️ 削除
-                    </button>
-                </div>
-            </div>
+                </td>
+            </tr>
         `;
     }
 
-    // カードのイベントリスナーを設定
-    attachCardEventListeners() {
-        // 詳細表示
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.getAttribute('data-order-id');
-                this.viewOrder(orderId);
-            });
-        });
-
-        // 編集
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.getAttribute('data-order-id');
-                this.editOrder(orderId);
-            });
-        });
-
-        // PDF生成
-        document.querySelectorAll('.pdf-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.getAttribute('data-order-id');
-                this.generatePDF(orderId);
-            });
-        });
-
-        // 削除
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.getAttribute('data-order-id');
-                this.deleteOrder(orderId);
-            });
-        });
+    // 旧カード関数（互換性のため残す）
+    createOrderCard(order) {
+        return this.createOrderRow(order);
     }
+
+
 
     // 合計金額を計算
     calculateTotal(items) {
+        if (!items || !Array.isArray(items)) return 0;
         return items.reduce((total, item) => {
-            const subtotal = item.quantity * item.unitPrice;
-            return total + subtotal;
+            const quantity = parseFloat(item.quantity) || 0;
+            const price = parseFloat(item.price || item.unitPrice) || 0;
+            return total + (quantity * price);
         }, 0);
     }
 
@@ -261,19 +247,19 @@ class OrderManagementSystem {
     updateStats() {
         const totalOrders = this.orders.length;
         const totalAmount = this.orders.reduce((sum, order) => sum + this.calculateTotal(order.items), 0);
-        
+
         const now = new Date();
         const thisMonthOrders = this.orders.filter(order => {
             const orderDate = new Date(order.orderDate);
-            return orderDate.getMonth() === now.getMonth() && 
-                   orderDate.getFullYear() === now.getFullYear();
+            return orderDate.getMonth() === now.getMonth() &&
+                orderDate.getFullYear() === now.getFullYear();
         }).length;
 
         // 選択月の統計
         const selectedMonthOrders = this.orders.filter(order => {
             const orderDate = new Date(order.orderDate);
-            return orderDate.getMonth() === this.selectedMonth.getMonth() && 
-                   orderDate.getFullYear() === this.selectedMonth.getFullYear();
+            return orderDate.getMonth() === this.selectedMonth.getMonth() &&
+                orderDate.getFullYear() === this.selectedMonth.getFullYear();
         }).length;
 
         // 統計カードを更新
@@ -304,7 +290,7 @@ class OrderManagementSystem {
 
         const year = this.selectedMonth.getFullYear();
         const month = monthNames[this.selectedMonth.getMonth()];
-        
+
         // 月表示を更新
         const monthDisplay = document.getElementById('currentMonthDisplay');
         if (monthDisplay) {
@@ -319,8 +305,8 @@ class OrderManagementSystem {
     updateMonthStats() {
         const selectedMonthOrders = this.orders.filter(order => {
             const orderDate = new Date(order.orderDate);
-            return orderDate.getMonth() === this.selectedMonth.getMonth() && 
-                   orderDate.getFullYear() === this.selectedMonth.getFullYear();
+            return orderDate.getMonth() === this.selectedMonth.getMonth() &&
+                orderDate.getFullYear() === this.selectedMonth.getFullYear();
         });
 
         const selectedMonthAmount = selectedMonthOrders.reduce((sum, order) => sum + this.calculateTotal(order.items), 0);
@@ -333,49 +319,11 @@ class OrderManagementSystem {
         }
     }
 
-    // 発注書の詳細表示
+    // 発注書の詳細表示（PDFプレビューとして開く）
     viewOrder(orderId) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (!order) return;
-
-        // 詳細表示用のモーダルまたはページを作成
-        const orderDetails = this.createOrderDetailsHTML(order);
-        
-        // 新しいウィンドウで詳細を表示
-        const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
-        newWindow.document.write(`
-            <!DOCTYPE html>
-            <html lang="ja">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>発注書詳細 - ${order.orderNumber}</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background: #f5f5f5; }
-                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-                    .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
-                    .info-section { margin-bottom: 25px; }
-                    .info-section h3 { color: #333; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
-                    .info-row { display: flex; margin-bottom: 8px; }
-                    .info-label { font-weight: bold; width: 120px; color: #666; }
-                    .info-value { flex: 1; color: #333; }
-                    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    .items-table th { background: #f8f9fa; font-weight: bold; }
-                    .total-section { text-align: right; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px; }
-                    .total-row { display: flex; justify-content: flex-end; margin-bottom: 5px; }
-                    .total-label { width: 150px; text-align: right; margin-right: 20px; }
-                    .total-amount { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    ${orderDetails}
-                </div>
-            </body>
-            </html>
-        `);
-        newWindow.document.close();
+        if (!orderId) return;
+        // index.htmlにリダイレクトしてプレビューモードで開く（IDのみ渡す）
+        window.location.href = `index.html?preview=${orderId}`;
     }
 
     // 発注書詳細HTMLを作成
@@ -461,12 +409,9 @@ class OrderManagementSystem {
 
     // 発注書の編集
     editOrder(orderId) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (!order) return;
-
+        if (!orderId) return;
         // メインページに移動して編集モードで開く
-        const orderData = encodeURIComponent(JSON.stringify(order));
-        window.location.href = `index.html?edit=${orderId}&data=${orderData}`;
+        window.location.href = `index.html?edit=${orderId}`;
     }
 
     // PDF生成
@@ -502,9 +447,18 @@ class OrderManagementSystem {
     deleteOrder(orderId) {
         if (!confirm('この発注書を削除してもよろしいですか？')) return;
 
-        this.orders = this.orders.filter(o => o.id !== orderId);
+        console.log('削除実行開始 ID:', orderId);
+
+        // IDを文字列として比較してフィルタリング
+        const originalCount = this.orders.length;
+        this.orders = this.orders.filter(o => String(o.id) !== String(orderId));
+
+        console.log(`削除前: ${originalCount}件, 削除後: ${this.orders.length}件`);
+
         this.saveOrders();
-        this.refreshData();
+
+        // 確実に画面を更新するためにリロードする
+        location.reload();
     }
 
     // データを更新
@@ -523,12 +477,12 @@ class OrderManagementSystem {
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
-            
+
             // ファイル名に月情報を含める
             const year = this.selectedMonth.getFullYear();
             const month = String(this.selectedMonth.getMonth() + 1).padStart(2, '0');
             const filterValue = document.getElementById('filterSelect').value;
-            
+
             let fileName = `発注書データ_${year}年${month}月`;
             if (filterValue === 'all') {
                 fileName = `発注書データ_全期間`;
@@ -539,7 +493,7 @@ class OrderManagementSystem {
             } else if (filterValue === 'thisYear') {
                 fileName = `発注書データ_${year}年`;
             }
-            
+
             link.href = url;
             link.download = `${fileName}.json`;
             link.click();
@@ -563,5 +517,5 @@ class OrderManagementSystem {
 
 // ページ読み込み時に管理システムを初期化
 document.addEventListener('DOMContentLoaded', () => {
-    new OrderManagementSystem();
+    window.managementSystem = new OrderManagementSystem();
 });

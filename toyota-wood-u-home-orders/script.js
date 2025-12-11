@@ -104,12 +104,12 @@ class OrderFormManager {
             });
         }
 
-        // 発注書管理登録ボタン
-        const registerToManagementBtn = document.getElementById('registerToManagementBtn');
-        if (registerToManagementBtn) {
-            registerToManagementBtn.addEventListener('click', (e) => {
+        // 保存してPDFダウンロード（統合ボタン）
+        const saveAndDownloadBtn = document.getElementById('saveAndDownloadBtn');
+        if (saveAndDownloadBtn) {
+            saveAndDownloadBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.registerToManagement();
+                this.saveAndDownloadPDF();
             });
         }
 
@@ -226,8 +226,7 @@ class OrderFormManager {
         // フォームデータとアイテムを結合
         const previewData = { ...formData, items };
 
-        this.saveOrderToStorage(previewData);
-
+        // プレビューのみ生成（保存は別ボタンで行う）
         const previewContent = this.generatePreviewHTML(previewData);
         document.getElementById('previewContent').innerHTML = previewContent;
         document.getElementById('previewArea').style.display = 'flex';
@@ -434,14 +433,32 @@ class OrderFormManager {
 
     saveOrderToStorage(data) {
         try {
-            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            const orders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
+
+            if (this.currentOrderId) {
+                // 既存の注文を更新
+                const index = orders.findIndex(o => o.id === this.currentOrderId);
+                if (index !== -1) {
+                    orders[index] = {
+                        ...orders[index],
+                        ...data,
+                        updatedAt: new Date().toISOString()
+                    };
+                    localStorage.setItem('purchaseOrders', JSON.stringify(orders));
+                    return this.currentOrderId;
+                }
+            }
+
+            // 新規作成
             const newOrder = {
                 id: Date.now().toString(),
+                orderNumber: `ORD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
                 createdAt: new Date().toISOString(),
                 ...data
             };
             orders.push(newOrder);
-            localStorage.setItem('orders', JSON.stringify(orders));
+            localStorage.setItem('purchaseOrders', JSON.stringify(orders));
+            this.currentOrderId = newOrder.id; // 新規作成後もそのIDを保持
             return newOrder.id;
         } catch (e) {
             console.error('保存エラー:', e);
@@ -463,6 +480,24 @@ class OrderFormManager {
         }
     }
 
+    // 保存してPDFダウンロード（統合機能）
+    saveAndDownloadPDF() {
+        const formData = this.getFormData();
+        const items = this.getItemsFromDOM();
+        const fullData = { ...formData, items };
+
+        // まず管理システムに保存
+        const orderId = this.saveOrderToStorage(fullData);
+
+        if (orderId) {
+            // 保存成功後、PDFダウンロード（印刷ダイアログ）
+            this.generateHighQualityPDFFromPreview();
+            alert('発注書を保存しました。印刷ダイアログからPDFを保存してください。');
+        } else {
+            alert('保存に失敗しました。');
+        }
+    }
+
     resetForm() {
         if (confirm('入力内容をリセットしますか？')) {
             document.getElementById('orderForm').reset();
@@ -480,15 +515,74 @@ class OrderFormManager {
     checkForEditMode() {
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('edit');
+        const previewId = urlParams.get('preview');
+
         if (editId) {
             this.loadOrderForEdit(editId);
+        } else if (previewId) {
+            // プレビューモード: IDからデータを読み込む
+            this.loadOrderForPreviewById(previewId);
         }
     }
 
+    loadOrderForPreviewById(id) {
+        try {
+            const orders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
+            // IDを文字列として比較
+            const order = orders.find(o => String(o.id) === String(id));
+
+            if (order) {
+                this.currentOrderId = id; // 現在のIDを設定
+                this.loadOrderForPreview(order);
+            } else {
+                console.error('指定されたIDの発注書が見つかりません');
+            }
+        } catch (e) {
+            console.error('プレビューデータの読み込みエラー:', e);
+        }
+    }
+
+    loadOrderForPreview(order) {
+        // フォームにデータを設定
+        document.getElementById('supplierName').value = order.supplierName || '';
+        document.getElementById('contactPerson').value = order.contactPerson || '';
+        document.getElementById('orderDate').value = order.orderDate || '';
+        document.getElementById('completionMonth').value = order.completionMonth || '';
+        document.getElementById('paymentTerms').value = order.paymentTerms || '';
+        document.getElementById('remarks').value = order.remarks || '';
+        document.getElementById('staffMember').value = order.staffMember || '';
+
+        // アイテム行をクリアして再作成
+        const tableBody = document.getElementById('itemTableBody');
+        tableBody.innerHTML = '';
+
+        if (order.items && order.items.length > 0) {
+            order.items.forEach(item => {
+                this.addItemRow();
+                const rows = tableBody.querySelectorAll('tr');
+                const lastRow = rows[rows.length - 1];
+                lastRow.querySelector('.item-project-name').value = item.projectName || '';
+                lastRow.querySelector('.item-name').value = item.name || '';
+                lastRow.querySelector('.item-quantity').value = item.quantity || '';
+                lastRow.querySelector('.item-unit').value = item.unit || '';
+                lastRow.querySelector('.item-price').value = item.unitPrice || '';
+            });
+        }
+
+        this.calculateTotals();
+
+        // 自動的にプレビューを表示
+        setTimeout(() => {
+            this.showPreview();
+        }, 300);
+    }
+
     loadOrderForEdit(id) {
-        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-        const order = orders.find(o => o.id === id);
+        const orders = JSON.parse(localStorage.getItem('purchaseOrders') || '[]');
+        // IDを文字列として比較
+        const order = orders.find(o => String(o.id) === String(id));
         if (order) {
+            this.currentOrderId = id; // 現在編集中のIDを保存
             // 基本情報のセット
             Object.keys(order).forEach(key => {
                 const el = document.getElementById(key);

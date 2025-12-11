@@ -1,324 +1,356 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>発注書管理システム - 株式会社諸鹿彩色</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --navy: #1a365d;
+            --navy-light: #2c5282;
+            --navy-dark: #1a202c;
+            --gray-50: #f7fafc;
+            --gray-100: #edf2f7;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e0;
+            --gray-500: #718096;
+            --gray-700: #4a5568;
+            --gray-900: #1a202c;
+            --success: #38a169;
+            --danger: #e53e3e;
+            --warning: #d69e2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--gray-100);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
         .management-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
-            background: #f8f9fa;
+            padding: 24px;
             min-height: 100vh;
         }
 
+        /* Header */
         .management-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--navy);
             color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .management-header h1 {
-            margin: 0;
-            font-size: 2.5rem;
+        .header-title h1 {
+            font-size: 1.5rem;
             font-weight: 700;
+            margin-bottom: 4px;
         }
 
-        .management-header p {
-            margin: 10px 0 0 0;
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .header-title p {
+            font-size: 0.875rem;
+            opacity: 0.8;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--navy);
+        }
+
+        .btn-primary:hover {
+            background: var(--gray-100);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+
+        /* Month Navigation */
+        .month-nav {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-nav button {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .month-nav button:hover {
+            background: var(--navy-light);
+        }
+
+        .current-month {
+            text-align: center;
+        }
+
+        .current-month h2 {
+            font-size: 1.5rem;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .current-month p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Controls */
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 16px;
+            gap: 16px;
             flex-wrap: wrap;
-            gap: 15px;
         }
 
         .search-box {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            gap: 12px;
             flex: 1;
             min-width: 300px;
         }
 
         .search-input {
             flex: 1;
-            padding: 12px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 10px 16px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.875rem;
             outline: none;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s;
         }
 
         .search-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--navy);
         }
 
         .filter-select {
-            padding: 12px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            font-size: 16px;
+            padding: 10px 16px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.875rem;
             background: white;
-            outline: none;
             cursor: pointer;
         }
 
-        .btn-group {
+        .control-buttons {
             display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
             gap: 8px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(254, 202, 87, 0.4);
-        }
-
-        .orders-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .order-card {
+        /* Table */
+        .table-container {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .order-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            border-color: #667eea;
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .order-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f1f3f4;
+        .orders-table thead {
+            background: var(--navy);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        .orders-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        .orders-table th:last-child {
+            text-align: center;
+        }
+
+        .orders-table tbody tr {
+            border-bottom: 1px solid var(--gray-200);
+            transition: background 0.15s;
+        }
+
+        .orders-table tbody tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .orders-table tbody tr:hover {
+            background: #e8f4fd;
+        }
+
+        .orders-table td {
+            padding: 14px 16px;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        .orders-table td:last-child {
+            text-align: center;
         }
 
         .order-number {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .order-date {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .order-info {
-            margin-bottom: 20px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 5px 0;
-        }
-
-        .info-label {
             font-weight: 600;
-            color: #34495e;
-            min-width: 80px;
+            color: var(--navy);
         }
 
-        .info-value {
-            color: #2c3e50;
-            text-align: right;
-            flex: 1;
+        .amount {
+            font-weight: 600;
+            color: var(--gray-900);
         }
 
-        .order-total {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .total-amount {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .order-actions {
+        .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             justify-content: center;
         }
 
-        .order-actions .btn {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #7f8c8d;
+            color: var(--gray-500);
         }
 
         .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--gray-700);
         }
 
         .empty-state p {
-            font-size: 1.1rem;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
 
-        .month-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            border: 2px solid #e2e8f0;
-        }
-
-        .current-month {
-            text-align: center;
-            flex: 1;
-        }
-
-        .current-month h2 {
-            margin: 0 0 10px 0;
-            font-size: 2rem;
-            color: #2c3e50;
-            font-weight: 700;
-        }
-
-        .current-month p {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #7f8c8d;
-            font-weight: 600;
-        }
-
-        .month-navigation .btn {
-            padding: 15px 25px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 25px;
-            min-width: 120px;
-        }
-
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 1rem;
-            font-weight: 600;
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
-            .month-navigation {
+            .management-header {
                 flex-direction: column;
-                gap: 20px;
+                gap: 16px;
                 text-align: center;
             }
 
-            .month-navigation .btn {
-                min-width: 100px;
+            .month-nav {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
             }
 
             .controls {
@@ -330,71 +362,63 @@
                 min-width: auto;
             }
 
-            .orders-grid {
-                grid-template-columns: 1fr;
+            .table-container {
+                overflow-x: auto;
             }
 
-            .order-actions {
-                flex-direction: column;
-            }
-
-            .stats-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .month-navigation .btn {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-
-            .current-month h2 {
-                font-size: 1.5rem;
+            .orders-table {
+                min-width: 700px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="management-container">
+        <!-- Header -->
         <div class="management-header">
-            <h1>📋 発注書管理システム</h1>
-            <p>作成した発注書の一覧表示・編集・管理</p>
+            <div class="header-title">
+                <h1>📋 発注書管理システム</h1>
+                <p>作成した発注書の一覧・管理</p>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-primary">🏠 メインページ</a>
+                <button id="exportBtn" class="btn btn-outline">📊 エクスポート</button>
+                <button id="clearAllBtn" class="btn btn-outline">🗑️ 全削除</button>
+            </div>
         </div>
 
-        <!-- 月別ナビゲーション -->
-        <div class="month-navigation">
-            <button id="prevMonthBtn" class="btn btn-primary">← 前月</button>
+        <!-- Month Navigation -->
+        <div class="month-nav">
+            <button id="prevMonthBtn">← 前月</button>
             <div class="current-month">
                 <h2 id="currentMonthDisplay">2024年1月</h2>
                 <p id="monthStats">発注書: 0件 | 金額: ¥0</p>
             </div>
-            <button id="nextMonthBtn" class="btn btn-primary">次月 →</button>
+            <button id="nextMonthBtn">次月 →</button>
         </div>
 
-        <div class="stats-cards" id="statsCards">
+        <!-- Stats -->
+        <div class="stats-grid" id="statsCards">
             <div class="stat-card">
-                <div class="stat-number" id="totalOrders">0</div>
-                <div class="stat-label">総発注書数</div>
+                <div class="number" id="totalOrders">0</div>
+                <div class="label">総発注書数</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalAmount">¥0</div>
-                <div class="stat-label">総発注金額</div>
+                <div class="number" id="totalAmount">¥0</div>
+                <div class="label">総発注金額</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="thisMonthOrders">0</div>
-                <div class="stat-label">今月の発注書</div>
+                <div class="number" id="thisMonthOrders">0</div>
+                <div class="label">今月の発注書</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="selectedMonthOrders">0</div>
-                <div class="stat-label">選択月の発注書</div>
+                <div class="number" id="selectedMonthOrders">0</div>
+                <div class="label">選択月の発注書</div>
             </div>
         </div>
 
+        <!-- Controls -->
         <div class="controls">
             <div class="search-box">
                 <input type="text" id="searchInput" class="search-input" placeholder="発注先名、発注書番号で検索...">
@@ -406,18 +430,31 @@
                     <option value="thisYear">今年</option>
                 </select>
             </div>
-            <div class="btn-group">
-                <a href="index.html" class="btn btn-primary">🏠 メインページ</a>
-                <button id="refreshBtn" class="btn btn-success">🔄 更新</button>
-                <button id="exportBtn" class="btn btn-warning">📊 エクスポート</button>
-                <button id="clearAllBtn" class="btn btn-danger">🗑️ 全削除</button>
+            <div class="control-buttons">
+                <button id="refreshBtn" class="btn btn-success btn-sm">🔄 更新</button>
             </div>
         </div>
 
-        <div class="orders-grid" id="ordersGrid">
-            <!-- 発注書カードがここに動的に追加されます -->
+        <!-- Orders Table -->
+        <div class="table-container">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>発注番号</th>
+                        <th>発注日</th>
+                        <th>発注先</th>
+                        <th>担当者</th>
+                        <th>合計金額</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
         </div>
 
+        <!-- Empty State -->
         <div class="empty-state" id="emptyState" style="display: none;">
             <h3>📝 発注書がありません</h3>
             <p>まだ発注書が作成されていません。<br>メインページで発注書を作成してください。</p>
@@ -427,4 +464,5 @@
 
     <script src="management.js"></script>
 </body>
+
 </html>
